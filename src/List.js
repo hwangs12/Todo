@@ -1,39 +1,67 @@
 import React from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
-const List = ({ budList, deleteAllOnClick, deleteOnClick, editOnClick }) => {
+import { FaEdit, FaTrash, FaWindowClose } from "react-icons/fa";
+const List = ({
+	id,
+	title,
+	deleteItemOnClick,
+	editItemOnClick,
+	editing,
+	handleChange,
+	editId,
+	handleSubmit,
+	hideEdit,
+	bud,
+}) => {
 	return (
-		<div className="grocery-container">
-			<div className="grocery-list">
-				{budList.map((bud) => {
-					return (
-						<article key={bud.id} className="grocery-item">
-							<p className="title">{bud.title}</p>
-							<div className="btn-container">
-								<button
-									type="button"
-									className="edit-btn"
-									onClick={() => editOnClick(bud.id)}
-								>
-									<FaEdit />
-								</button>
-								<button
-									type="button"
-									className="delete-btn"
-									onClick={() => deleteOnClick(bud.id)}
-								>
-									<FaTrash />
-								</button>
-							</div>
-						</article>
-					);
-				})}
-			</div>
-			{budList.length > 0 && (
-				<button className="clear-btn" onClick={deleteAllOnClick}>
-					clear items
-				</button>
+		<>
+			{editing && id === editId ? (
+				<form className="grocery-form">
+					<div className="form-control">
+						<input
+							type="text"
+							className="grocery"
+							placeholder="e.g. eggs"
+							value={bud}
+							onChange={handleChange}
+						/>
+						<button
+							type="submit"
+							className="submit-btn"
+							onClick={handleSubmit}
+						>
+							edit
+						</button>
+						<button
+							type="submit"
+							className="submit-btn after-edit"
+							onClick={hideEdit}
+						>
+							<FaWindowClose />
+						</button>
+					</div>
+				</form>
+			) : (
+				<article className="grocery-item">
+					<p className="title">{title}</p>
+					<div className="btn-container">
+						<button
+							type="button"
+							className="edit-btn"
+							onClick={() => editItemOnClick(id)}
+						>
+							<FaEdit />
+						</button>
+						<button
+							type="button"
+							className="delete-btn"
+							onClick={() => deleteItemOnClick(id)}
+						>
+							<FaTrash />
+						</button>
+					</div>
+				</article>
 			)}
-		</div>
+		</>
 	);
 };
 

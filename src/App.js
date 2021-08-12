@@ -2,20 +2,11 @@ import React, { useState, useEffect } from "react";
 import List from "./List";
 import Alert from "./Alert";
 
-const getLocalStorage = () => {
-	let list = localStorage.getItem("list");
-	if (list) {
-		return JSON.parse(localStorage.getItem("list"));
-	} else {
-		return [];
-	}
-};
-
 function App() {
 	const [bud, setBud] = useState("");
-	const [budList, setBudList] = useState(getLocalStorage());
+	const [list, setList] = useState([]);
 	const [alert, setAlert] = useState({ show: false, type: "", msg: "" });
-	const [edit, setEdit] = useState(false);
+	const [editing, setEditing] = useState(false);
 	const [editId, setEditId] = useState(null);
 
 	const handleChange = (e) => {
@@ -25,87 +16,113 @@ function App() {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		if (!bud) {
-			setAlert({ show: true, type: "danger", msg: "please enter value" });
-		} else if (bud && edit) {
-			setBudList(
-				budList.map((item) => {
+			showAlert(true, "danger", "please submit valid input");
+		} else if (bud && editing) {
+			setList(
+				list.map((item) => {
 					if (item.id === editId) {
 						return { ...item, title: bud };
 					}
 					return item;
 				})
 			);
-			showAlert(true, "success", "item has been edited");
+			showAlert(true, "success", "an item has been edited");
+			setEditing(false);
 			setBud("");
 		} else {
-			const newItem = { id: new Date().getTime().toString(), title: bud };
-			setBudList([...budList, newItem]);
-			showAlert(true, "success", "item added to the list");
+			const newItem = { id: new Date().getTime(), title: bud };
+			setList([...list, newItem]);
+			showAlert(true, "success", "an item has been added");
 			setBud("");
 		}
 	};
 
-	const deleteAllOnClick = () => {
-		setBudList([]);
-		showAlert(true, "danger", "empty list");
+	const deleteListOnClick = () => {
+		setList([]);
+		showAlert(true, "danger", "items have been cleared");
 	};
 
-	const deleteOnClick = (id) => {
-		const newList = budList.filter((bud) => {
-			return bud.id !== id;
-		});
-		setBudList(newList);
-		showAlert(true, "danger", "item deleted");
+	const deleteItemOnClick = (id) => {
+		const newList = list.filter((item) => item.id !== id);
+		setList(newList);
+		showAlert(true, "danger", "an item has been deleted");
 	};
 
 	const showAlert = (show = false, type = "", msg = "") => {
 		setAlert({ show, type, msg });
 	};
 
-	const editOnClick = (id) => {
-		const editItem = budList.find((bud) => bud.id === id);
-		console.log(editItem);
-		setEdit(true);
+	const editItemOnClick = (id) => {
+		setEditing(true);
+		const budFound = list.find((item) => item.id === id);
 		setEditId(id);
-		setBud(editItem.title);
+		setBud(budFound.title);
+	};
+
+	const hideEdit = (e) => {
+		e.preventDefault();
+		setEditing(false);
+		showAlert(true, "danger", "the edit has been cancelled");
+		setBud("");
 	};
 
 	useEffect(() => {
-		localStorage.setItem("list", JSON.stringify(budList));
-	}, [budList]);
+		const data = JSON.parse(localStorage.getItem("list"));
+		if (data) {
+			setList(data);
+		}
+	}, []);
 
-	// const editOnClick = (id) => {
-	// 	setBud({ id: id, title: e.target.value });
-	// };
+	useEffect(() => {
+		localStorage.setItem("list", JSON.stringify(list));
+	}, [list]);
 
 	return (
 		<section className="section-center">
-			{alert.show && (
-				<Alert {...alert} budList={budList} showAlert={showAlert} />
-			)}
-			<form className="grocery-form" onSubmit={handleSubmit}>
-				<h3>grocery bud</h3>
+			{alert.show && <Alert {...alert} showAlert={showAlert} />}
+			<form action="" className="grocery-form" onSubmit={handleSubmit}>
+				<h3>things to do today</h3>
+				{/* {!editing && ( */}
 				<div className="form-control">
 					<input
 						type="text"
-						placeholder="e.g. eggs"
 						className="grocery"
-						value={bud}
+						placeholder="e.g. eggs"
+						value={editing ? "editing..." : bud}
 						onChange={handleChange}
+						disabled={editing}
 					/>
 					<button type="submit" className="submit-btn">
 						submit
 					</button>
 				</div>
+				{/* )} */}
 			</form>
-			<List
-				budList={budList}
-				handleChange={handleChange}
-				deleteAllOnClick={deleteAllOnClick}
-				deleteOnClick={deleteOnClick}
-				editOnClick={editOnClick}
-				edit={edit}
-			/>
+			<div className="grocery-container">
+				<div className="grocery-list">
+					{list.map((item) => {
+						return (
+							<List
+								key={item.id}
+								{...item}
+								deleteItemOnClick={deleteItemOnClick}
+								editItemOnClick={editItemOnClick}
+								editing={editing}
+								editId={editId}
+								handleChange={handleChange}
+								handleSubmit={handleSubmit}
+								hideEdit={hideEdit}
+								bud={bud}
+							/>
+						);
+					})}
+				</div>
+				{list.length > 0 && (
+					<button className="clear-btn" onClick={deleteListOnClick}>
+						clear items
+					</button>
+				)}
+			</div>
 		</section>
 	);
 }
