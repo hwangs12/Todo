@@ -2,4 +2,4 @@
 
 #### You can add, delete, edit a task
 
-https://hwangs12.github.io/todo-v2
+https://hwangs12.github.io/todo
